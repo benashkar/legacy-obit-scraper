@@ -5,12 +5,12 @@ Handles upsert of obituary records and scrape run logging.
 Uses INSERT IGNORE on the legacy_url unique key for deduplication.
 """
 
-import os
 from datetime import date, datetime, timezone
 
 import mysql.connector
 from dotenv import load_dotenv
 
+from utils.aws_secrets import get_db_creds
 from utils.logger import get_logger
 
 log = get_logger(__name__)
@@ -42,7 +42,10 @@ CHECK_URL_SQL = "SELECT 1 FROM obituaries WHERE legacy_url = %s LIMIT 1"
 
 def get_connection():
     """
-    Create and return a MySQL connection using .env credentials.
+    Create and return a MySQL connection.
+
+    Fetches credentials from AWS Secrets Manager first,
+    falls back to .env / environment variables for local dev.
 
     Returns:
         mysql.connector.connection.MySQLConnection
@@ -50,12 +53,13 @@ def get_connection():
     Raises:
         mysql.connector.Error: If connection fails.
     """
+    creds = get_db_creds()
     return mysql.connector.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        port=int(os.getenv("DB_PORT", "3306")),
-        user=os.getenv("DB_USER", ""),
-        password=os.getenv("DB_PASSWORD", ""),
-        database=os.getenv("DB_NAME", ""),
+        host=creds["DB_HOST"],
+        port=int(creds["DB_PORT"]),
+        user=creds["DB_USER"],
+        password=creds["DB_PASSWORD"],
+        database=creds["DB_NAME"],
         charset="utf8mb4",
     )
 
