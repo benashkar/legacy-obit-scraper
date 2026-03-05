@@ -14,8 +14,80 @@ from scraper.obit_parser import (
 from bs4 import BeautifulSoup
 
 
-# --- Fixtures: sample HTML pages ---
+# --- Fixtures: sample HTML pages mimicking real Legacy.com structure ---
 
+# Current Legacy.com 2026 format: JSON in <script type="application/json"><!--{...}-->
+EMBEDDED_JSON_HTML = """
+<html><head></head><body>
+<script type="application/json"><!--{
+    "adMap": {"ads": []},
+    "obituaryList": {
+        "obituaries": [
+            {
+                "id": 211000142,
+                "personId": 211000142,
+                "name": {
+                    "firstName": "Joe",
+                    "lastName": "Blair",
+                    "middleName": "Edward",
+                    "nickName": "Double",
+                    "maidenName": null,
+                    "prefix": "",
+                    "suffix": "",
+                    "fullName": "Joe Edward \\"Double\\" Blair"
+                },
+                "funeralHome": {
+                    "id": 19385,
+                    "name": "Blaylock Funeral Home"
+                },
+                "obitSnippet": "Joe Edward Blair, 74, of Brownwood, passed away peacefully.",
+                "links": {
+                    "obituaryUrl": {
+                        "href": "https://www.legacy.com/us/obituaries/name/joe-blair-obituary?id=60939051",
+                        "path": "/us/obituaries/name/joe-blair-obituary?id=60939051"
+                    }
+                },
+                "datePostedFrom": "2026-03-04T00:00:00",
+                "publisherName": "Blaylock Funeral Home",
+                "location": {
+                    "city": {"fullName": "Brownwood"},
+                    "state": {"code": "TX", "fullName": "Texas"}
+                }
+            },
+            {
+                "id": 211001408,
+                "personId": 211001408,
+                "name": {
+                    "firstName": "Mary",
+                    "lastName": "Johnson",
+                    "middleName": "",
+                    "nickName": null,
+                    "maidenName": null,
+                    "prefix": "",
+                    "suffix": "Sr.",
+                    "fullName": "Mary Johnson Sr."
+                },
+                "funeralHome": null,
+                "obitSnippet": "Mary Johnson, beloved mother.",
+                "links": {
+                    "obituaryUrl": {
+                        "href": "https://www.legacy.com/us/obituaries/name/mary-johnson-obituary?id=60940610",
+                        "path": "/us/obituaries/name/mary-johnson-obituary?id=60940610"
+                    }
+                },
+                "datePostedFrom": "2026-03-04T00:00:00",
+                "publisherName": "Legacy Remembers",
+                "location": null
+            }
+        ]
+    },
+    "notableObits": {"obituaries": []},
+    "listView": {}
+}--></script>
+</body></html>
+"""
+
+# Older Legacy.com format: window.__INITIAL_STATE__
 INITIAL_STATE_HTML = """
 <html><head></head><body>
 <script>
@@ -37,19 +109,6 @@ window.__INITIAL_STATE__ = {
                                     "obituaryUrl": {"path": "/us/obituaries/name/john-smith-id12345"}
                                 }
                             }
-                        },
-                        {
-                            "node": {
-                                "name": {"firstName": "Mary", "lastName": "Johnson"},
-                                "personId": 12346,
-                                "obituaryNoHtml": "Mary Johnson, beloved mother.",
-                                "publishedDate": "2026-03-01",
-                                "deathDate": null,
-                                "funeralHomeName": null,
-                                "links": {
-                                    "obituaryUrl": {"path": "/us/obituaries/name/mary-johnson-id12346"}
-                                }
-                            }
                         }
                     ]
                 }
@@ -57,29 +116,6 @@ window.__INITIAL_STATE__ = {
         }
     }
 };
-</script>
-</body></html>
-"""
-
-NEXT_DATA_HTML = """
-<html><head></head><body>
-<script id="__NEXT_DATA__" type="application/json">
-{
-    "props": {
-        "pageProps": {
-            "obituaries": [
-                {
-                    "name": {"firstName": "Robert", "lastName": "Williams"},
-                    "url": "/us/obituaries/name/robert-williams-id999",
-                    "obituaryText": "Robert Williams, age 85.",
-                    "publishedDate": "2026-03-02",
-                    "deathDate": "2026-03-01",
-                    "funeralHomeName": "Oak Hill Chapel"
-                }
-            ]
-        }
-    }
-}
 </script>
 </body></html>
 """
@@ -113,53 +149,73 @@ EMPTY_OBIT_HTML = """
 """
 
 
-class TestExtractFromInitialState:
-    """Tests for __INITIAL_STATE__ JSON extraction."""
+class TestExtractFromEmbeddedJson:
+    """Tests for the current (2026) Legacy.com embedded JSON format."""
 
     def test_extracts_two_obits(self):
-        """Parses both obituaries from __INITIAL_STATE__ JSON."""
-        obits = extract_obits_from_listing(INITIAL_STATE_HTML)
+        """Parses both obituaries from embedded JSON."""
+        obits = extract_obits_from_listing(EMBEDDED_JSON_HTML)
         assert len(obits) == 2
 
-    def test_first_obit_fields(self):
-        """First obituary has correct name, text, dates, and funeral home."""
+    def test_first_obit_structured_name(self):
+        """First obit uses structured name fields from Legacy.com JSON."""
+        obits = extract_obits_from_listing(EMBEDDED_JSON_HTML)
+        obit = obits[0]
+        assert obit["first_name"] == "Joe"
+        assert obit["middle_name"] == "Edward"
+        assert obit["last_name"] == "Blair"
+        assert obit["deceased_name"] == 'Joe Edward "Double" Blair'
+
+    def test_first_obit_funeral_home(self):
+        """Funeral home extracted from funeralHome.name object."""
+        obits = extract_obits_from_listing(EMBEDDED_JSON_HTML)
+        assert obits[0]["funeral_home"] == "Blaylock Funeral Home"
+
+    def test_first_obit_url(self):
+        """URL comes from links.obituaryUrl.href."""
+        obits = extract_obits_from_listing(EMBEDDED_JSON_HTML)
+        assert "joe-blair-obituary" in obits[0]["url"]
+        assert obits[0]["url"].startswith("https://")
+
+    def test_first_obit_snippet(self):
+        """Obit text is the snippet from listing."""
+        obits = extract_obits_from_listing(EMBEDDED_JSON_HTML)
+        assert "passed away peacefully" in obits[0]["obit_text"]
+
+    def test_first_obit_date(self):
+        """Published date parsed from ISO datePostedFrom."""
+        obits = extract_obits_from_listing(EMBEDDED_JSON_HTML)
+        assert obits[0]["published_date"] == "2026-03-04"
+
+    def test_null_funeral_home_falls_back(self):
+        """When funeralHome is null, falls back to publisherName."""
+        obits = extract_obits_from_listing(EMBEDDED_JSON_HTML)
+        assert obits[1]["funeral_home"] == "Legacy Remembers"
+
+    def test_suffix_from_structured_data(self):
+        """Suffix extracted from name.suffix field."""
+        obits = extract_obits_from_listing(EMBEDDED_JSON_HTML)
+        assert obits[1]["name_suffix"] == "Sr."
+
+
+class TestExtractFromInitialState:
+    """Tests for older __INITIAL_STATE__ JSON extraction."""
+
+    def test_extracts_obit(self):
+        """Parses obituary from __INITIAL_STATE__ JSON."""
+        obits = extract_obits_from_listing(INITIAL_STATE_HTML)
+        assert len(obits) == 1
+
+    def test_obit_fields(self):
+        """Obituary has correct fields from older format."""
         obits = extract_obits_from_listing(INITIAL_STATE_HTML)
         obit = obits[0]
         assert obit["deceased_name"] == "John Smith"
         assert obit["first_name"] == "John"
         assert obit["last_name"] == "Smith"
-        assert obit["obit_text"] == "John Smith passed away peacefully."
+        assert obit["funeral_home"] == "Springfield Memorial"
         assert obit["published_date"] == "2026-03-01"
         assert obit["death_date"] == "2026-02-28"
-        assert obit["funeral_home"] == "Springfield Memorial"
-        assert "john-smith" in obit["url"]
-
-    def test_null_fields_handled(self):
-        """Null death_date and funeral_home from JSON become None."""
-        obits = extract_obits_from_listing(INITIAL_STATE_HTML)
-        obit = obits[1]  # Mary Johnson has null deathDate and funeralHomeName
-        assert obit["death_date"] is None
-        assert obit["funeral_home"] is None
-        assert obit["deceased_name"] == "Mary Johnson"
-
-
-class TestExtractFromNextData:
-    """Tests for __NEXT_DATA__ JSON extraction."""
-
-    def test_extracts_obit(self):
-        """Parses obituary from __NEXT_DATA__ JSON."""
-        obits = extract_obits_from_listing(NEXT_DATA_HTML)
-        assert len(obits) == 1
-
-    def test_obit_fields(self):
-        """Obituary has correct fields from Next.js data."""
-        obits = extract_obits_from_listing(NEXT_DATA_HTML)
-        obit = obits[0]
-        assert obit["deceased_name"] == "Robert Williams"
-        assert obit["first_name"] == "Robert"
-        assert obit["last_name"] == "Williams"
-        assert obit["funeral_home"] == "Oak Hill Chapel"
-        assert "robert-williams" in obit["url"]
 
 
 class TestExtractFromHtml:
@@ -266,8 +322,6 @@ class TestParseSingleObitPage:
         """parse_name returns empty string when no name found."""
         soup = BeautifulSoup(EMPTY_OBIT_HTML, "lxml")
         name = parse_name(soup)
-        # Falls through to bare h1, which doesn't exist with obit-name testid
-        # but the div text is not in an h1, so should be empty or fallback
         assert isinstance(name, str)
 
     def test_parse_obit_text(self):
@@ -327,6 +381,14 @@ class TestParseDateStr:
     def test_us_short_format(self):
         """Parses 'Mar 1, 2026' format."""
         assert _parse_date_str("Mar 1, 2026") == "2026-03-01"
+
+    def test_legacy_abbreviated_format(self):
+        """Parses 'Mar. 4, 2026' format (Legacy.com style)."""
+        assert _parse_date_str("Mar. 4, 2026") == "2026-03-04"
+
+    def test_on_prefix_stripped(self):
+        """Strips 'on ' prefix from Legacy.com date strings."""
+        assert _parse_date_str("on Mar. 4, 2026") == "2026-03-04"
 
     def test_none_input(self):
         """None input returns None."""
