@@ -1,7 +1,7 @@
 """
 Fetch DB connection credentials from AWS Secrets Manager, falling back to env vars.
 
-Secret name: ben/ai-tool/db99
+Secret name: /ben/ai-tool/db99
 Secret contains: DB_HOST, DB_PORT, DB_USER, DB_PASSWORD (server-level creds)
 DB_NAME is always project-specific, set via env var or .env file.
 
@@ -17,7 +17,7 @@ from utils.logger import get_logger
 
 log = get_logger(__name__)
 
-SECRET_NAME = "ben/ai-tool/db99"
+SECRET_NAME = "/ben/ai-tool/db99"
 AWS_REGION = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
 
 _cached_creds = None
