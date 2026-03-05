@@ -1,8 +1,9 @@
 """
-Fetch DB credentials from AWS Secrets Manager, falling back to env vars.
+Fetch DB connection credentials from AWS Secrets Manager, falling back to env vars.
 
-Secret name: cr-obituaries/db99
-Expected JSON keys: DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME
+Secret name: ben/ai-tool/db99
+Secret contains: DB_HOST, DB_PORT, DB_USER, DB_PASSWORD (server-level creds)
+DB_NAME is always project-specific, set via env var or .env file.
 
 On Render/production: boto3 fetches from AWS (needs AWS_ACCESS_KEY_ID,
 AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION in env).
@@ -25,15 +26,21 @@ _cached_creds = None
 def get_db_creds():
     """Return dict with DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME.
 
-    Tries AWS Secrets Manager first, falls back to env vars.
+    Connection creds (host, port, user, password) come from AWS Secrets Manager
+    when available, falling back to env vars.
+    DB_NAME always comes from env var / .env — each project sets its own database.
     Caches the result after the first successful fetch.
     """
     global _cached_creds
     if _cached_creds is not None:
         return _cached_creds
 
+    # DB_NAME is always project-specific, never from AWS
+    db_name = os.getenv("DB_NAME", "")
+
     creds = _fetch_from_aws()
     if creds:
+        creds["DB_NAME"] = db_name
         _cached_creds = creds
         return creds
 
@@ -43,7 +50,7 @@ def get_db_creds():
         "DB_PORT": os.getenv("DB_PORT", "3306"),
         "DB_USER": os.getenv("DB_USER", ""),
         "DB_PASSWORD": os.getenv("DB_PASSWORD", ""),
-        "DB_NAME": os.getenv("DB_NAME", ""),
+        "DB_NAME": db_name,
     }
     _cached_creds = creds
     return creds
@@ -62,7 +69,6 @@ def _fetch_from_aws():
             "DB_PORT": secret.get("DB_PORT") or "3306",
             "DB_USER": secret.get("DB_USER") or "",
             "DB_PASSWORD": secret.get("DB_PASSWORD") or "",
-            "DB_NAME": secret.get("DB_NAME") or "",
         }
     except ImportError:
         return None
