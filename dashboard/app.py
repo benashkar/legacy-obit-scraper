@@ -18,6 +18,25 @@ def create_app(config_class=Config):
     def health():
         return jsonify({"status": "ok"})
 
+    # Network diagnostic endpoint
+    @app.route("/api/health/net")
+    def health_net():
+        import socket
+        host = app.config["DB_HOST"]
+        port = app.config["DB_PORT"]
+        result = {"host": host, "port": port}
+        try:
+            result["resolved_ips"] = [ip[4][0] for ip in socket.getaddrinfo(host, port)]
+        except Exception as exc:
+            result["dns_error"] = str(exc)
+        try:
+            sock = socket.create_connection((host, port), timeout=5)
+            sock.close()
+            result["tcp_connect"] = "ok"
+        except Exception as exc:
+            result["tcp_connect_error"] = str(exc)
+        return jsonify(result)
+
     # DB health check (diagnose connection issues)
     @app.route("/api/health/db")
     def health_db():
