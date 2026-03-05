@@ -16,7 +16,7 @@ from utils.logger import get_logger
 
 log = get_logger(__name__)
 
-SECRET_NAME = "cr-obituaries/db99"
+SECRET_NAME = "ben/ai-tool/db99"
 AWS_REGION = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
 
 _cached_creds = None
