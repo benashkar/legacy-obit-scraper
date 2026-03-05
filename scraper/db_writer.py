@@ -22,12 +22,12 @@ INSERT_OBIT_SQL = """
     INSERT IGNORE INTO obituaries
         (site_id, legacy_url, deceased_name, first_name, middle_name,
          last_name, name_suffix, published_date, death_date,
-         funeral_home, obit_text, scraped_at)
+         funeral_home, city, state, county, obit_text, scraped_at)
     VALUES
         (%(site_id)s, %(legacy_url)s, %(deceased_name)s, %(first_name)s,
          %(middle_name)s, %(last_name)s, %(name_suffix)s,
          %(published_date)s, %(death_date)s, %(funeral_home)s,
-         %(obit_text)s, %(scraped_at)s)
+         %(city)s, %(state)s, %(county)s, %(obit_text)s, %(scraped_at)s)
 """
 
 # SQL for logging a scrape run
@@ -106,6 +106,9 @@ def upsert_obit(conn, obit_dict, site_id):
             "published_date": obit_dict.get("published_date"),
             "death_date": obit_dict.get("death_date"),
             "funeral_home": obit_dict.get("funeral_home"),
+            "city": obit_dict.get("city") or "",
+            "state": obit_dict.get("state") or "",
+            "county": obit_dict.get("county") or "",
             "obit_text": obit_dict.get("obit_text") or "",
             "scraped_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
         }

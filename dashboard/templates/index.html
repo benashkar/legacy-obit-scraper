@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}CR Obituaries — {{ total }} results{% endblock %}
+
+{% block content %}
+<form method="get" class="filter-form">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-2">
+            <label class="form-label" for="funeral_home">Funeral Home</label>
+            <select class="form-select" id="funeral_home" name="funeral_home">
+                <option value="">All</option>
+                {% for fh in funeral_homes %}
+                <option value="{{ fh }}" {% if filters.funeral_home == fh %}selected{% endif %}>{{ fh }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="city">City</label>
+            <select class="form-select" id="city" name="city">
+                <option value="">All</option>
+                {% for c in cities %}
+                <option value="{{ c }}" {% if filters.city == c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="county">County</label>
+            <select class="form-select" id="county" name="county">
+                <option value="">All</option>
+                {% for c in counties %}
+                <option value="{{ c }}" {% if filters.county == c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-1">
+            <label class="form-label" for="state">State</label>
+            <select class="form-select" id="state" name="state">
+                <option value="">All</option>
+                {% for s in states %}
+                <option value="{{ s }}" {% if filters.state == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="death_date">Date of Death</label>
+            <input type="date" class="form-control" id="death_date" name="death_date" value="{{ filters.death_date }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+        <div class="col-md-1">
+            <a href="/" class="btn btn-outline-secondary w-100">Reset</a>
+        </div>
+    </div>
+</form>
+
+<p class="text-muted">Showing {{ total }} obituaries</p>
+
+<table id="obit-table" class="table table-striped table-hover" style="width:100%">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Death Date</th>
+            <th>Published</th>
+            <th>Funeral Home</th>
+            <th>City</th>
+            <th>County</th>
+            <th>State</th>
+            <th>Link</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for o in obits %}
+        <tr>
+            <td>{{ o.deceased_name or (o.first_name ~ ' ' ~ o.last_name) }}</td>
+            <td>{{ o.death_date or '' }}</td>
+            <td>{{ o.published_date or '' }}</td>
+            <td>{{ o.funeral_home or '' }}</td>
+            <td>{{ o.city or '' }}</td>
+            <td>{{ o.county or '' }}</td>
+            <td>{{ o.state or '' }}</td>
+            <td>{% if o.legacy_url %}<a href="{{ o.legacy_url }}" target="_blank" rel="noopener">View</a>{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    $('#obit-table').DataTable({
+        pageLength: 50,
+        order: [[1, 'desc']],
+        language: { search: "Search within results:" }
+    });
+});
+</script>
+{% endblock %}

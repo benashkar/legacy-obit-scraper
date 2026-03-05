@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cr_obituaries — Entity Relationship Diagram</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+            border-bottom: 3px solid #e94560;
+            padding: 28px 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        header h1 span.db-name {
+            color: #e94560;
+            font-weight: 700;
+        }
+
+        header p.subtitle {
+            margin-top: 6px;
+            font-size: 0.95rem;
+            color: #a0a0b8;
+        }
+
+        .content {
+            width: 100%;
+            max-width: 1400px;
+            padding: 30px 24px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .legend {
+            background: #16213e;
+            border: 1px solid #2a2a4a;
+            border-radius: 10px;
+            padding: 20px 32px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .legend h3 {
+            width: 100%;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #c0c0d0;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .legend-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            font-family: 'Consolas', 'Courier New', monospace;
+            min-width: 38px;
+            text-align: center;
+        }
+
+        .badge-pk  { background: #e94560; color: #fff; }
+        .badge-uk  { background: #0f3460; color: #53d8fb; border: 1px solid #53d8fb; }
+        .badge-fk  { background: #533483; color: #e0b0ff; border: 1px solid #e0b0ff; }
+        .badge-idx { background: #1a3c34; color: #4ecca3; border: 1px solid #4ecca3; }
+        .badge-ft  { background: #3a3000; color: #ffc857; border: 1px solid #ffc857; }
+
+        .legend-label {
+            color: #b0b0c8;
+        }
+
+        .diagram-container {
+            width: 100%;
+            background: #16213e;
+            border: 1px solid #2a2a4a;
+            border-radius: 10px;
+            padding: 30px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .mermaid {
+            width: 100%;
+        }
+
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        footer {
+            margin-top: auto;
+            width: 100%;
+            text-align: center;
+            padding: 18px;
+            color: #555570;
+            font-size: 0.82rem;
+            border-top: 1px solid #2a2a4a;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><span class="db-name">cr_obituaries</span> &mdash; Entity Relationship Diagram</h1>
+        <p class="subtitle">MySQL database on db99 &middot; 2 tables &middot; 1 view &middot; Generated 2026-03-04</p>
+    </header>
+
+    <div class="content">
+        <div class="legend">
+            <h3>Legend</h3>
+            <div class="legend-item">
+                <span class="legend-badge badge-pk">PK</span>
+                <span class="legend-label">Primary Key</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-badge badge-uk">UK</span>
+                <span class="legend-label">Unique Key</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-badge badge-fk">FK</span>
+                <span class="legend-label">Foreign Key</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-badge badge-idx">IDX</span>
+                <span class="legend-label">Index</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-badge badge-ft">FT</span>
+                <span class="legend-label">Full-Text Index</span>
+            </div>
+        </div>
+
+        <div class="diagram-container">
+            <pre class="mermaid">
+erDiagram
+    obituaries {
+        INT id PK "AUTO_INCREMENT"
+        VARCHAR_50 site_id "NOT NULL  IDX"
+        VARCHAR_500 legacy_url UK "NOT NULL  UNIQUE"
+        VARCHAR_255 deceased_name "FT idx_ft_deceased_name"
+        VARCHAR_100 first_name "IDX"
+        VARCHAR_100 middle_name ""
+        VARCHAR_100 last_name "IDX"
+        VARCHAR_20 name_suffix ""
+        DATE published_date "IDX"
+        DATE death_date "IDX"
+        VARCHAR_255 funeral_home "IDX"
+        VARCHAR_100 city "IDX"
+        VARCHAR_2 state "IDX"
+        VARCHAR_100 county "IDX"
+        LONGTEXT obit_text ""
+        DATETIME scraped_at "IDX  DEFAULT CURRENT_TIMESTAMP"
+        TINYINT sent_to_cms "IDX  DEFAULT 0"
+        INT duplicate_of FK "IDX  NULLABLE  self-ref to id"
+    }
+
+    scrape_log {
+        INT id PK "AUTO_INCREMENT"
+        VARCHAR_50 site_id "IDX"
+        DATE run_date "NOT NULL  IDX"
+        INT obits_found "DEFAULT 0"
+        INT obits_new "DEFAULT 0"
+        TEXT errors ""
+        DATETIME run_at "DEFAULT CURRENT_TIMESTAMP"
+    }
+
+    v_obituaries["v_obituaries (VIEW)"] {
+        INT id "from obituaries"
+        VARCHAR_100 first_name ""
+        VARCHAR_100 middle_name ""
+        VARCHAR_100 last_name ""
+        VARCHAR_20 name_suffix ""
+        VARCHAR_100 city ""
+        VARCHAR_100 county ""
+        VARCHAR_2 state ""
+        VARCHAR_500 legacy_url ""
+        DATE death_date ""
+        DATE published_date ""
+        DATETIME scraped_at ""
+        VARCHAR_255 funeral_home ""
+        VARCHAR_255 deceased_name ""
+        LONGTEXT obit_text ""
+    }
+
+    obituaries ||--o{ obituaries : "duplicate_of (self-ref FK)"
+    scrape_log }o..o{ obituaries : "site_id (logical link)"
+    obituaries ||--o{ v_obituaries : "WHERE duplicate_of IS NULL"
+            </pre>
+        </div>
+    </div>
+
+    <footer>
+        cr_obituaries ERD &middot; Database: db99.rds.blockshopper.com
+    </footer>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#0f3460',
+                primaryTextColor: '#e0e0e0',
+                primaryBorderColor: '#e94560',
+                lineColor: '#e94560',
+                secondaryColor: '#533483',
+                tertiaryColor: '#16213e',
+                edgeLabelBackground: '#1a1a2e',
+                fontSize: '14px',
+                fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif'
+            },
+            er: {
+                diagramPadding: 30,
+                layoutDirection: 'TB',
+                minEntityWidth: 180,
+                minEntityHeight: 40,
+                entityPadding: 15,
+                useMaxWidth: true,
+                fontSize: 13
+            }
+        });
+    </script>
+</body>
+</html>

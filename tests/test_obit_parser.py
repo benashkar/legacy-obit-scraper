@@ -197,6 +197,22 @@ class TestExtractFromEmbeddedJson:
         obits = extract_obits_from_listing(EMBEDDED_JSON_HTML)
         assert obits[1]["name_suffix"] == "Sr."
 
+    def test_city_extracted(self):
+        """City extracted from location.city.fullName."""
+        obits = extract_obits_from_listing(EMBEDDED_JSON_HTML)
+        assert obits[0]["city"] == "Brownwood"
+
+    def test_state_extracted(self):
+        """State extracted from location.state.code."""
+        obits = extract_obits_from_listing(EMBEDDED_JSON_HTML)
+        assert obits[0]["state"] == "TX"
+
+    def test_null_location_defaults_empty(self):
+        """When location is null, city/state default to empty string."""
+        obits = extract_obits_from_listing(EMBEDDED_JSON_HTML)
+        assert obits[1]["city"] == ""
+        assert obits[1]["state"] == ""
+
 
 class TestExtractFromInitialState:
     """Tests for older __INITIAL_STATE__ JSON extraction."""

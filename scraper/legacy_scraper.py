@@ -147,4 +147,6 @@ class LegacyScraper:
             "published_date": dates.get("published") or partial_obit.get("published_date"),
             "death_date": dates.get("death") or partial_obit.get("death_date"),
             "funeral_home": funeral_home,
+            "city": partial_obit.get("city") or "",
+            "state": partial_obit.get("state") or "",
         }

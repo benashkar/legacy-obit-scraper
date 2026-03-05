@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from scraper.legacy_scraper import LegacyScraper
 from scraper.db_writer import get_connection, upsert_obit, log_run
+from scraper.dedup import run_dedup
 from utils.logger import get_logger
 
 log = get_logger(__name__)
@@ -71,8 +72,10 @@ def run():
 
                 found = len(obits)
                 new = 0
+                county = market.get("county") or ""
 
                 for obit in obits:
+                    obit["county"] = county
                     if upsert_obit(conn, obit, site_id):
                         new += 1
 
@@ -105,6 +108,15 @@ def run():
         total_found,
         total_new,
     )
+
+    # Run person-level dedup after all markets are scraped
+    log.info("[OK] Running person-level deduplication")
+    dedup_conn = get_connection()
+    try:
+        dupes = run_dedup(dedup_conn)
+        log.info("[OK] Dedup marked %d duplicate rows", dupes)
+    finally:
+        dedup_conn.close()
 
 
 if __name__ == "__main__":

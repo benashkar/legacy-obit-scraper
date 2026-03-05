@@ -182,6 +182,13 @@ def _parse_obit_list_entries(obit_list):
         # Obituary snippet (truncated text from listing page)
         obit_text = entry.get("obitSnippet") or ""
 
+        # Extract city and state from location object
+        loc_obj = entry.get("location") or {}
+        city_obj = loc_obj.get("city") or {}
+        state_obj = loc_obj.get("state") or {}
+        city = city_obj.get("fullName") or ""
+        state = state_obj.get("code") or ""
+
         obits.append({
             "url": url,
             "deceased_name": full_name,
@@ -193,6 +200,8 @@ def _parse_obit_list_entries(obit_list):
             "published_date": published_date,
             "death_date": death_date,
             "funeral_home": funeral_home,
+            "city": city,
+            "state": state,
         })
 
     return obits
@@ -259,6 +268,8 @@ def _extract_from_initial_state(html_text):
             "published_date": _parse_date_str(node.get("publishedDate")),
             "death_date": _parse_date_str(node.get("deathDate")),
             "funeral_home": node.get("funeralHomeName"),
+            "city": "",
+            "state": "",
         })
 
     return obits
@@ -324,6 +335,8 @@ def _extract_from_html(html_text):
             "published_date": None,
             "death_date": None,
             "funeral_home": None,
+            "city": "",
+            "state": "",
         })
 
     return obits

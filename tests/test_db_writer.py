@@ -57,6 +57,9 @@ class TestUpsertObit:
             "published_date": "2026-03-01",
             "death_date": "2026-02-28",
             "funeral_home": "Springfield Memorial",
+            "city": "Springfield",
+            "state": "OH",
+            "county": "Franklin",
             "obit_text": "John Smith passed away.",
         }
         result = upsert_obit(mock_conn, obit, "tx-brown")
@@ -76,6 +79,9 @@ class TestUpsertObit:
             "published_date": None,
             "death_date": None,
             "funeral_home": None,
+            "city": "",
+            "state": "",
+            "county": "",
             "obit_text": "",
         }
         result = upsert_obit(mock_conn, obit, "oh-franklin")
