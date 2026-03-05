@@ -58,25 +58,22 @@ def index():
     obits = cursor.fetchall()
     cursor.close()
 
-    # Get distinct values for filter dropdowns
-    dropdown_sql = """
-        SELECT
-            GROUP_CONCAT(DISTINCT funeral_home ORDER BY funeral_home SEPARATOR '||') AS funeral_homes,
-            GROUP_CONCAT(DISTINCT city ORDER BY city SEPARATOR '||') AS cities,
-            GROUP_CONCAT(DISTINCT county ORDER BY county SEPARATOR '||') AS counties,
-            GROUP_CONCAT(DISTINCT state ORDER BY state SEPARATOR '||') AS states
-        FROM obituaries
-        WHERE funeral_home IS NOT NULL OR city IS NOT NULL OR state IS NOT NULL
-    """
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(dropdown_sql)
-    dropdown_row = cursor.fetchone()
-    cursor.close()
+    # Get distinct values for filter dropdowns (separate fast queries)
+    cursor = conn.cursor()
 
-    funeral_homes = [fh for fh in (dropdown_row.get("funeral_homes") or "").split("||") if fh]
-    cities = [c for c in (dropdown_row.get("cities") or "").split("||") if c]
-    counties = [c for c in (dropdown_row.get("counties") or "").split("||") if c]
-    states = [s for s in (dropdown_row.get("states") or "").split("||") if s]
+    cursor.execute("SELECT DISTINCT state FROM obituaries WHERE state IS NOT NULL AND state != '' ORDER BY state")
+    states = [r[0] for r in cursor.fetchall()]
+
+    cursor.execute("SELECT DISTINCT county FROM obituaries WHERE county IS NOT NULL AND county != '' ORDER BY county LIMIT 500")
+    counties = [r[0] for r in cursor.fetchall()]
+
+    cursor.execute("SELECT DISTINCT city FROM obituaries WHERE city IS NOT NULL AND city != '' ORDER BY city LIMIT 500")
+    cities = [r[0] for r in cursor.fetchall()]
+
+    cursor.execute("SELECT DISTINCT funeral_home FROM obituaries WHERE funeral_home IS NOT NULL AND funeral_home != '' ORDER BY funeral_home LIMIT 500")
+    funeral_homes = [r[0] for r in cursor.fetchall()]
+
+    cursor.close()
 
     return render_template(
         "index.html",
