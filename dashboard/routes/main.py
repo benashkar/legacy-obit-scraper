@@ -1,5 +1,6 @@
 """Main dashboard routes — obituary listing with filters."""
 
+import pymysql.cursors
 from flask import Blueprint, render_template, request
 
 from dashboard.db import get_db
@@ -53,7 +54,7 @@ def index():
     """
 
     conn = get_db()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute(sql, params)
     obits = cursor.fetchall()
     cursor.close()
