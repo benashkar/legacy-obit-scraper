@@ -19,6 +19,7 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 
+from scraper.date_extractor import extract_dates_from_text
 from utils.logger import get_logger
 
 log = get_logger(__name__)
@@ -176,11 +177,13 @@ def _parse_obit_list_entries(obit_list):
 
         # Parse dates — datePostedFrom is the reliable published date (ISO format)
         published_date = _parse_date_str(entry.get("datePostedFrom"))
-        # Death date not directly available in listing; extract from obit snippet if possible
-        death_date = None
-
         # Obituary snippet (truncated text from listing page)
         obit_text = entry.get("obitSnippet") or ""
+
+        # Extract birth and death dates from the obit text
+        dates_from_text = extract_dates_from_text(obit_text)
+        death_date = dates_from_text["death_date"]
+        birth_date = dates_from_text["birth_date"]
 
         # Extract city and state from location object
         loc_obj = entry.get("location") or {}
@@ -199,6 +202,7 @@ def _parse_obit_list_entries(obit_list):
             "obit_text": obit_text,
             "published_date": published_date,
             "death_date": death_date,
+            "birth_date": birth_date,
             "funeral_home": funeral_home,
             "city": city,
             "state": state,

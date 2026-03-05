@@ -59,6 +59,7 @@
     <thead>
         <tr>
             <th>Name</th>
+            <th>Birth Date</th>
             <th>Death Date</th>
             <th>Published</th>
             <th>Funeral Home</th>
@@ -72,6 +73,7 @@
         {% for o in obits %}
         <tr>
             <td>{{ o.deceased_name or (o.first_name ~ ' ' ~ o.last_name) }}</td>
+            <td>{{ o.birth_date or '' }}</td>
             <td>{{ o.death_date or '' }}</td>
             <td>{{ o.published_date or '' }}</td>
             <td>{{ o.funeral_home or '' }}</td>
@@ -90,7 +92,7 @@
 $(document).ready(function() {
     $('#obit-table').DataTable({
         pageLength: 50,
-        order: [[1, 'desc']],
+        order: [[2, 'desc']],
         language: { search: "Search within results:" }
     });
 });

@@ -21,12 +21,12 @@ load_dotenv()
 INSERT_OBIT_SQL = """
     INSERT IGNORE INTO obituaries
         (site_id, legacy_url, deceased_name, first_name, middle_name,
-         last_name, name_suffix, published_date, death_date,
+         last_name, name_suffix, published_date, death_date, birth_date,
          funeral_home, city, state, county, obit_text, scraped_at)
     VALUES
         (%(site_id)s, %(legacy_url)s, %(deceased_name)s, %(first_name)s,
          %(middle_name)s, %(last_name)s, %(name_suffix)s,
-         %(published_date)s, %(death_date)s, %(funeral_home)s,
+         %(published_date)s, %(death_date)s, %(birth_date)s, %(funeral_home)s,
          %(city)s, %(state)s, %(county)s, %(obit_text)s, %(scraped_at)s)
 """
 
@@ -109,6 +109,7 @@ def upsert_obit(conn, obit_dict, site_id):
             "name_suffix": obit_dict.get("name_suffix") or "",
             "published_date": obit_dict.get("published_date"),
             "death_date": obit_dict.get("death_date"),
+            "birth_date": obit_dict.get("birth_date"),
             "funeral_home": obit_dict.get("funeral_home"),
             "city": obit_dict.get("city") or "",
             "state": obit_dict.get("state") or "",

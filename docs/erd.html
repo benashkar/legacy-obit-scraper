@@ -141,7 +141,7 @@
 <body>
     <header>
         <h1><span class="db-name">cr_obituaries</span> &mdash; Entity Relationship Diagram</h1>
-        <p class="subtitle">MySQL database on db99 &middot; 2 tables &middot; 1 view &middot; Generated 2026-03-04</p>
+        <p class="subtitle">MySQL database on db99 &middot; 2 tables &middot; 1 view &middot; Generated 2026-03-05</p>
     </header>
 
     <div class="content">
@@ -183,6 +183,7 @@ erDiagram
         VARCHAR_20 name_suffix ""
         DATE published_date "IDX"
         DATE death_date "IDX"
+        DATE birth_date "IDX"
         VARCHAR_255 funeral_home "IDX"
         VARCHAR_100 city "IDX"
         VARCHAR_2 state "IDX"
@@ -213,6 +214,7 @@ erDiagram
         VARCHAR_100 county ""
         VARCHAR_2 state ""
         VARCHAR_500 legacy_url ""
+        DATE birth_date ""
         DATE death_date ""
         DATE published_date ""
         DATETIME scraped_at ""

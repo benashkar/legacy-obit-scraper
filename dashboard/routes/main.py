@@ -43,8 +43,9 @@ def index():
         where_sql = "WHERE " + " AND ".join(where_clauses)
 
     sql = f"""
-        SELECT deceased_name, first_name, last_name, death_date, published_date,
-               funeral_home, city, county, state, legacy_url, site_id
+        SELECT deceased_name, first_name, last_name, birth_date, death_date,
+               published_date, funeral_home, city, county, state, legacy_url,
+               site_id
         FROM obituaries
         {where_sql}
         ORDER BY COALESCE(death_date, published_date, scraped_at) DESC
